@@ -80,6 +80,15 @@ thirdparty/    Third-party dependencies
 - [Chinese README](README_CN.md)
 - [Gameplay narrative pitch](introduction/Gameplay%20Narrative%20Pitch.pdf)
 - [Coding standard](docs/coding_standard.md)
+
+## Licensing
+
+Project-authored source code, build files, tests, documentation, and editable
+asset configuration files are licensed under
+[GPL-3.0-only](LICENSE). Protected game assets are not covered by that grant:
+see [the assets license](assets/LICENSE.md). Third-party dependencies retain
+their own licenses; see [Third-Party Notices](THIRD_PARTY_NOTICES.md).
+
 # Project-Hail-Mary
 
 ## Build on WSL Ubuntu
