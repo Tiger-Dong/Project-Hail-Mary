@@ -19,8 +19,6 @@ public:
 
     void on_collision(const engine::core::Vector2 &collision_direction) noexcept override;
     void on_entity_collision(GameObject *entity) noexcept override;
-    void on_destroy() noexcept override;
-
     void update(double delta) override;
 
     AttackInfo attack_info() const noexcept override;
@@ -32,6 +30,7 @@ public:
     BulletBehaviorSet *behavior_set() { return &_behaviors; }
 
 private:
+    void on_destroyed() noexcept override;
     void update_hit_cooldowns(double &delta);
 
 private:

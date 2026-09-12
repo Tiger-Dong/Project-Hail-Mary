@@ -60,12 +60,14 @@ scene binding and update calls.
 ## Ownership and Lifetime
 
 `ProjectileService` owns no runtime state. `ProjectileManager` owns the queued
-shot records and keeps non-owning pointers to their source. The active scene
-owns each spawned projectile through `std::unique_ptr`.
+shot records and observes their source through `SceneObjectObserver`; it does
+not extend the source lifetime. The active scene owns each spawned projectile
+through `std::unique_ptr`.
 
-The source must remain alive until every delayed shot that uses it has fired or
-the queue has been cleared. Destroying the source while delayed shots remain
-would leave those queued records without a valid spawn origin.
+If a source is destroyed before a delayed shot fires, its observer becomes
+invalid and the manager safely discards that shot. Room reset and exit also
+unbind the manager before destroying scene objects, which clears all queued
+shots and prevents old-run work from entering the rebuilt room.
 
 ## Failure and Empty Results
 

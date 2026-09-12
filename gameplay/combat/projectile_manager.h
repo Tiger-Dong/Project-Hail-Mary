@@ -2,8 +2,10 @@
 
 #include "projectile_fire_request.h"
 
+#include "../../engine/core/scene_object_observer.h"
 #include "../../engine/tools/singleton.h"
 
+#include <cstddef>
 #include <vector>
 
 namespace engine::physics
@@ -40,11 +42,12 @@ public:
 
     void update(double delta);
     void clear() noexcept;
+    [[nodiscard]] std::size_t scheduled_projectile_count() const noexcept;
 
 private:
     struct ScheduledProjectile
     {
-        const engine::core::GameObject* source = nullptr;
+        engine::core::SceneObjectObserver<const engine::core::GameObject> source;
         ProjectileCollisionProfile collision;
         ShotDescriptor shot;
     };

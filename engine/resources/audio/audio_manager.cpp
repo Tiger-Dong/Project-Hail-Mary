@@ -4,6 +4,11 @@
 namespace engine::resources
 {
 
+AudioManager::~AudioManager()
+{
+	clear();
+}
+
 bool AudioManager::load_sound(
 	const std::string& key,
 	const std::filesystem::path& file_path
@@ -79,10 +84,12 @@ bool AudioManager::store_sound(const std::string& key, Mix_Chunk* sound)
 	SoundPool::iterator iterator = _sound_pool.find(key);
 	if (iterator != _sound_pool.end())
 	{
-		if (iterator->second)
-			Mix_FreeChunk(iterator->second);
-
-		iterator->second = sound;
+		if (iterator->second != sound)
+		{
+			if (iterator->second)
+				Mix_FreeChunk(iterator->second);
+			iterator->second = sound;
+		}
 		return true;
 	}
 
@@ -109,10 +116,12 @@ bool AudioManager::store_music(const std::string& key, Mix_Music* music)
 	MusicPool::iterator iterator = _music_pool.find(key);
 	if (iterator != _music_pool.end())
 	{
-		if (iterator->second)
-			Mix_FreeMusic(iterator->second);
-
-		iterator->second = music;
+		if (iterator->second != music)
+		{
+			if (iterator->second)
+				Mix_FreeMusic(iterator->second);
+			iterator->second = music;
+		}
 		return true;
 	}
 
@@ -137,5 +146,24 @@ Mix_Music* AudioManager::find_music(const std::string_view& key) const
 		return nullptr;
 
 	return iterator->second;
+}
+
+void AudioManager::clear() noexcept
+{
+	for (const auto& [key, sound] : _sound_pool)
+	{
+		(void)key;
+		if (sound)
+			Mix_FreeChunk(sound);
+	}
+	_sound_pool.clear();
+
+	for (const auto& [key, music] : _music_pool)
+	{
+		(void)key;
+		if (music)
+			Mix_FreeMusic(music);
+	}
+	_music_pool.clear();
 }
 }

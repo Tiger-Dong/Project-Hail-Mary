@@ -3,8 +3,8 @@
 #include "../../../engine/core/geometry/vector2.h"
 #include "../bullet.h"
 
-#include "../../../engine/scene/scene_manager.h"
-#include "../../scene/room_scene.h"
+#include "../../object_service/game_object_service.h"
+#include "../../characters/enemy.h"
 
 #include "../../../engine/audio/audio_service.h"
 
@@ -109,24 +109,15 @@ void HomingBehavior::on_update(BulletBehaviorContext &context)
     if (context.bullet.desired_velocity().length() < min_speed)
         return;
 
-    //need object query service
-    RoomScene *room_scene = engine::scene::SceneManager::instance()->try_find_scene<RoomScene>();
-    if (!room_scene)
-    {
-        return;
-    }
-
     float speed = context.bullet.desired_velocity().length();
-    ;
     engine::core::Vector2 pos = context.bullet.center();
 
-    //need object query service
-    engine::core::Vector2 target = room_scene->closest_enemy_to_point(pos);
-
-    if (target.is_zero())
+    Enemy* enemy = GAME_OBJECT_SERVICE->find_nearest_enemy(pos);
+    if (!enemy)
     {
         return;
     }
+    const engine::core::Vector2 target = enemy->center();
 
     // Represents desired velocity if perfectly pointing at enemy
     engine::core::Vector2 desired = (target - pos).normalized();

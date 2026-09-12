@@ -2,6 +2,8 @@
 
 #include "atlas/atlas_manager.h"
 #include "resource_bootstrapper.h"
+#include "../animation/animation_manager.h"
+#include "../effects/runtime/effect_manager.h"
 #include "../io/path_manager.h"
 #include "../tools/logger.h"
 
@@ -25,21 +27,48 @@ bool ResourceManager::init(SDL_Renderer* renderer)
 		return false;
 	}
 
+	if (_initialized)
+	{
+		if (_renderer == renderer)
+			return true;
+
+		ENGINE_LOG_ERROR("resource","ResourceManager init failed: already initialized with another renderer.");
+		return false;
+	}
+
 	_renderer = renderer;
 
 	if (!engine::io::PathManager::instance()->init())
 	{
 		ENGINE_LOG_ERROR("resource","ResourceManager init failed: engine::io::PathManager init fail.");
+		shutdown();
 		return false;
 	}
 
 	if (!ResourceBootstrapper::bootstrap(*this, renderer))
 	{
 		ENGINE_LOG_ERROR("resource","ResourceManager init failed: resource bootstrap failed.");
+		shutdown();
 		return false;
 	}
 
+	_initialized = true;
 	return true;
+}
+
+void ResourceManager::shutdown() noexcept
+{
+	engine::effects::EffectManager::instance()->clear_content();
+	engine::animation::AnimationManager::instance()->clear_content();
+
+	if (_atlas_manager)
+		_atlas_manager->clear();
+	_texture_manager.clear();
+	_font_manager.clear();
+	_audio_manager.clear();
+
+	_renderer = nullptr;
+	_initialized = false;
 }
 
 bool ResourceManager::load_font(

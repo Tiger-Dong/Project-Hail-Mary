@@ -47,6 +47,7 @@ public:
 
 	const AnimationDefinition* find_definition(const std::string_view& key) const;
 	std::unique_ptr<Animation> create_animation(const std::string_view& key) const;
+	void clear_content() noexcept;
 
 private:
 	std::unordered_map<std::string, AnimationDefinition> _definitions;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../engine/core/scene_object_observer.h"
 #include "../../engine/physics/tile_collision_world.h"
 #include "../map/dungeon_room.h"
 
@@ -8,35 +9,40 @@ class RoomTileCollisionWorld final : public engine::physics::TileCollisionWorld
 public:
     void set_room(const DungeonRoom* room) noexcept
     {
-        _room = room;
+        _room.reset(room);
     }
 
     [[nodiscard]] engine::core::Vector2 world_origin() const noexcept override
     {
-        return _room ? _room->position() : engine::core::Vector2::zero();
+        const DungeonRoom* room = _room.get();
+        return room ? room->position() : engine::core::Vector2::zero();
     }
 
     [[nodiscard]] engine::core::Vector2 tile_size() const noexcept override
     {
-        return _room ? _room->tile_render_size() : engine::core::Vector2::zero();
+        const DungeonRoom* room = _room.get();
+        return room ? room->tile_render_size() : engine::core::Vector2::zero();
     }
 
     [[nodiscard]] int tile_columns() const noexcept override
     {
-        return _room ? _room->tile_map().width() : 0;
+        const DungeonRoom* room = _room.get();
+        return room ? room->tile_map().width() : 0;
     }
 
     [[nodiscard]] int tile_rows() const noexcept override
     {
-        return _room ? _room->tile_map().height() : 0;
+        const DungeonRoom* room = _room.get();
+        return room ? room->tile_map().height() : 0;
     }
 
     [[nodiscard]] bool is_tile_collidable(int x, int y) const noexcept override
     {
-        if (!_room)
+        const DungeonRoom* room = _room.get();
+        if (!room)
             return false;
 
-        const TileMap& tile_map = _room->tile_map();
+        const TileMap& tile_map = room->tile_map();
         if (x < 0 || x >= tile_map.width())
             return false;
 
@@ -47,5 +53,5 @@ public:
     }
 
 private:
-    const DungeonRoom* _room = nullptr;
+    engine::core::SceneObjectObserver<const DungeonRoom> _room;
 };

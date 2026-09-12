@@ -27,6 +27,7 @@ public:
 		TextureManager& texture_manager
 	);
 	const Atlas* find_atlas(const std::string_view& key) const;
+	void clear() noexcept;
 
 private:
 	AtlasPool _atlas_pool;

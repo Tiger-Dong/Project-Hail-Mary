@@ -15,6 +15,11 @@ const Atlas* AtlasManager::find_atlas(const std::string_view& key) const
 	return &iterator->second;
 }
 
+void AtlasManager::clear() noexcept
+{
+	_atlas_pool.clear();
+}
+
 bool AtlasManager::load_atlas(
 	SDL_Renderer* renderer,
 	const AtlasLoadRequest& request,

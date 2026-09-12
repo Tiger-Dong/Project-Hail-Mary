@@ -37,9 +37,10 @@ void RoomScene::on_update(double delta)
 
     ProjectileManager::instance()->update(delta);
 
-    if (_player && !_player->is_destroyed() && !_player->is_dead())
+    PlayerCharacter* player = _player.get();
+    if (player && !player->is_dead())
     {
-        camera.follow(_player->center().x, _player->center().y, 1.0f);
+        camera.follow(player->center().x, player->center().y, 1.0f);
     }
 }
 
@@ -58,7 +59,8 @@ void RoomScene::on_input(const engine::input::InputSnapshot &input, const std::v
         return;
     }
 
-    if (!_player || _player->is_destroyed() || _player->is_dead())
+    PlayerCharacter* player = _player.get();
+    if (!player || player->is_dead())
         return;
 
     if (input.state.is_just_pressed(engine::input::InputAction::Attack))
@@ -70,32 +72,8 @@ void RoomScene::on_input(const engine::input::InputSnapshot &input, const std::v
         }
 
         // Get schedule of projectiles from wand attack and add to buffer
-        _player->create_projectile(shot_direction);
+        player->create_projectile(shot_direction);
     }
-}
-
-engine::core::Vector2 RoomScene::closest_enemy_to_point(engine::core::Vector2 &point)
-{
-    if (_enemies.empty())
-    {
-        return engine::core::Vector2(0, 0);
-    }
-
-    engine::core::Vector2 closest = _enemies[0]->center();
-    float closest_dist_sq = (closest - point).length_squared();
-
-    for (int i = 1; i < _enemies.size(); i++)
-    {
-        float dist_sq = (_enemies[i]->center() - point).length_squared();
-
-        if (dist_sq < closest_dist_sq)
-        {
-            closest = _enemies[i]->center();
-            closest_dist_sq = dist_sq;
-        }
-    }
-
-    return closest;
 }
 
 // imgui debug
@@ -110,26 +88,22 @@ void RoomScene::on_imgui()
 
 void RoomScene::on_exit()
 {
-    this->destroy_all_scene_objects();
-    ProjectileManager::instance()->clear();
     ProjectileManager::instance()->unbind_scene();
-    _enemies.clear();
-    _scheduled_projectiles.clear();
+    this->destroy_all_scene_objects();
     _collision_world.set_room(nullptr);
-    _player = nullptr;
+    _player.reset();
     _paused = false;
-    _room = nullptr;
+    _room.reset();
 }
 
 void RoomScene::reset()
 {
+    ProjectileManager::instance()->unbind_scene();
     this->destroy_all_scene_objects();
-    _enemies.clear();
-    _scheduled_projectiles.clear();
     _collision_world.set_room(nullptr);
-    _player = nullptr;
+    _player.reset();
     _paused = false;
-    _room = nullptr;
+    _room.reset();
     build_room();
     spawn_player();
     generate_enemies(EnemyType::Skeleton, 3);
@@ -137,6 +111,7 @@ void RoomScene::reset()
     generate_enemies(EnemyType::GoblinWitch, 2);
     generate_enemies(EnemyType::Wizard, 1);
     generate_enemies(EnemyType::SkeletonElite, 2);
+    ProjectileManager::instance()->bind_scene(*this, physics_manager());
 }
 
 engine::core::Vector2 RoomScene::get_shot_direction(int pointer_x, int pointer_y)
@@ -145,7 +120,11 @@ engine::core::Vector2 RoomScene::get_shot_direction(int pointer_x, int pointer_y
         static_cast<float>(pointer_x),
         static_cast<float>(pointer_y));
 
-    engine::core::Vector2 aim_direction = engine::core::Vector2(mouse_world.x, mouse_world.y) - _player->center();
+    PlayerCharacter* player = _player.get();
+    if (!player)
+        return engine::core::Vector2(1.0f, 0.0f);
+
+    engine::core::Vector2 aim_direction = engine::core::Vector2(mouse_world.x, mouse_world.y) - player->center();
     if (aim_direction.is_zero())
         aim_direction = engine::core::Vector2(1.0f, 0.0f);
 
@@ -157,35 +136,39 @@ void RoomScene::build_room()
     if (_room)
         return;
 
-    _room = add_object(std::make_unique<DungeonRoom>());
-    if (_room)
+    DungeonRoom* room = add_object(std::make_unique<DungeonRoom>());
+    _room.reset(room);
+    if (room)
     {
-        _collision_world.set_room(_room);
+        _collision_world.set_room(room);
         physics_manager().set_collision_world(&_collision_world);
     }
 }
 
 void RoomScene::spawn_player()
 {
-    if (_player && !_player->is_destroyed() && !_player->is_dead())
+    PlayerCharacter* player = _player.get();
+    if (player && !player->is_dead())
         return;
 
-    _player = create_and_add_object<PlayerCharacter>(
+    player = create_and_add_object<PlayerCharacter>(
         "player/protagonist",
         engine::core::Vector2(540.0f, 540.0f),
         engine::core::Vector2(64.0f, 64.0f),
         "fire.impact_radial");
+    _player.reset(player);
 
-    if (_player)
+    if (player)
     {
-        _player->set_move_speed(200.0f);
-        physics_manager().register_body(_player, _player, _player);
+        player->set_move_speed(200.0f);
+        physics_manager().register_body(player, player, player);
     }
 }
 
 void RoomScene::generate_enemies(EnemyType type, std::size_t count)
 {
-    if (!_room)
+    DungeonRoom* room = _room.get();
+    if (!room)
         return;
 
     const EnemyGenerationConfig config{
@@ -193,7 +176,7 @@ void RoomScene::generate_enemies(EnemyType type, std::size_t count)
         .count = count};
 
     std::vector<std::unique_ptr<Enemy>> generated_enemies =
-        _enemy_generator.generate(*_room, config);
+        _enemy_generator.generate(*room, config);
 
     for (std::unique_ptr<Enemy> &enemy : generated_enemies)
     {
@@ -201,7 +184,6 @@ void RoomScene::generate_enemies(EnemyType type, std::size_t count)
         if (!added_enemy)
             continue;
 
-        _enemies.push_back(added_enemy);
         physics_manager().register_body(added_enemy, added_enemy, added_enemy);
     }
 }

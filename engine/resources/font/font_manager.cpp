@@ -4,6 +4,11 @@
 namespace engine::resources
 {
 
+FontManager::~FontManager()
+{
+	clear();
+}
+
 
 bool FontManager::load_font(const std::string& key,const std::filesystem::path& file_path,int point_size)
 {
@@ -57,12 +62,12 @@ bool FontManager::store_font(const std::string& key, TTF_Font* font)
 	FontPool::iterator iterator = _font_pool.find(key);
 	if (iterator != _font_pool.end())
 	{
-		if (iterator->second)
+		if (iterator->second != font)
 		{
-			TTF_CloseFont(iterator->second);
+			if (iterator->second)
+				TTF_CloseFont(iterator->second);
+			iterator->second = font;
 		}
-
-		iterator->second = font;
 		return true;
 	}
 
@@ -77,5 +82,16 @@ TTF_Font* FontManager::find_font(const std::string_view& key) const
 		return nullptr;
 
 	return iterator->second;
+}
+
+void FontManager::clear() noexcept
+{
+	for (const auto& [key, font] : _font_pool)
+	{
+		(void)key;
+		if (font)
+			TTF_CloseFont(font);
+	}
+	_font_pool.clear();
 }
 }

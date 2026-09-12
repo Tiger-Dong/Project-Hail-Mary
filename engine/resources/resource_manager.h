@@ -1,4 +1,4 @@
- #pragma once
+#pragma once
 #include "../tools/singleton.h"
 
 #include <SDL.h>
@@ -30,6 +30,8 @@ public:
 	~ResourceManager();
 
 	bool init(SDL_Renderer* renderer);
+	void shutdown() noexcept;
+	[[nodiscard]] bool is_initialized() const noexcept { return _initialized; }
 
 	bool load_font(
 		const std::string& key,
@@ -59,11 +61,12 @@ public:
 private:
 	const Atlas* build_atlas(SDL_Renderer* renderer, const AtlasLoadRequest& request);
 
-	SDL_Renderer* _renderer=nullptr;
+	SDL_Renderer* _renderer = nullptr;
 
 	TextureManager _texture_manager;
 	FontManager _font_manager;
 	AudioManager _audio_manager;
 	std::unique_ptr<AtlasManager> _atlas_manager;
+	bool _initialized = false;
 };
 }

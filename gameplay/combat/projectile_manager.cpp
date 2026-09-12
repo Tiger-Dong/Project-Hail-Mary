@@ -47,7 +47,7 @@ void ProjectileManager::enqueue_fire_request(ProjectileFireRequest request)
         }
 
         ScheduledProjectile scheduled;
-        scheduled.source = request.source;
+        scheduled.source.reset(request.source);
         scheduled.collision = request.collision;
         scheduled.shot = std::move(shot);
         _scheduled_projectiles.push_back(std::move(scheduled));
@@ -91,9 +91,15 @@ void ProjectileManager::clear() noexcept
     _scheduled_projectiles.clear();
 }
 
+std::size_t ProjectileManager::scheduled_projectile_count() const noexcept
+{
+    return _scheduled_projectiles.size();
+}
+
 void ProjectileManager::spawn_projectile(ScheduledProjectile scheduled)
 {
-    if (!_scene_runtime.is_valid() || !scheduled.source)
+    const engine::core::GameObject* source = scheduled.source.get();
+    if (!_scene_runtime.is_valid() || !source)
     {
         ENGINE_LOG_WARN("ProjectileManager", "Cannot spawn projectile from an invalid runtime or source.");
         return;
@@ -101,13 +107,16 @@ void ProjectileManager::spawn_projectile(ScheduledProjectile scheduled)
 
     // Update bullut spawn position with offset relative to player
     Bullet_Attributes attributes = std::move(scheduled.shot.bullet_attributes);
-    attributes.start_position =scheduled.source->center() + scheduled.shot.spawn_offset;
+    attributes.start_position = source->center() + scheduled.shot.spawn_offset;
 
     std::unique_ptr<Projectile> projectile =std::make_unique<Bullet>(attributes);
     Projectile* added_projectile =_scene_runtime.scene->add_object(std::move(projectile));
 
     if (!added_projectile)
+    {
         ENGINE_LOG_ERROR("ProjectileManager", "Bound scene rejected a projectile.");
+        return;
+    }
 
     if (scheduled.collision.entity_collision_enabled())
     {
@@ -138,6 +147,7 @@ void ProjectileManager::spawn_projectile(ScheduledProjectile scheduled)
         {
             ENGINE_LOG_ERROR("ProjectileManager", "Failed to create projectile collision box.");
             added_projectile->destroy();
+            return;
         }
 
         added_projectile->set_collision_box(collision_box);

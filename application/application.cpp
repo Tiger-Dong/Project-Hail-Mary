@@ -2,6 +2,7 @@
 
 #include "../engine/audio/audio_service.h"
 #include "../engine/io/path_manager.h"
+#include "../engine/resources/resource_manager.h"
 #include "../engine/scene/scene_manager.h"
 #include "../engine/tools/logger.h"
 
@@ -170,5 +171,6 @@ void Application::shutdown()
 {
 	engine::scene::SceneManager::instance()->shutdown();
 	engine::audio::AudioService::instance()->shutdown();
+	engine::resources::ResourceManager::instance()->shutdown();
 	engine::tools::Logger::instance()->shutdown();
 }

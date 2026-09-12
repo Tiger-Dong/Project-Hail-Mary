@@ -6,6 +6,11 @@
 namespace engine::resources
 {
 
+TextureManager::~TextureManager()
+{
+	clear();
+}
+
 bool TextureManager::load_texture(SDL_Renderer* renderer, const std::string& key,std::filesystem::path file_path)
 {
 	if (!renderer)
@@ -25,6 +30,8 @@ bool TextureManager::store_texture(const std::string& key, SDL_Texture* texture)
 	if (key.empty())
 	{
 		ENGINE_LOG_WARN("resource","Store texture failed: key is empty.");
+		if (texture)
+			SDL_DestroyTexture(texture);
 		return false;
 	}
 
@@ -34,10 +41,18 @@ bool TextureManager::store_texture(const std::string& key, SDL_Texture* texture)
 		return false;
 	}
 
-	if (_texture_pool.contains(key))
+	TexturePool::iterator iterator = _texture_pool.find(key);
+	if (iterator != _texture_pool.end())
+	{
+		if (iterator->second != texture)
+		{
+			SDL_DestroyTexture(iterator->second);
+			iterator->second = texture;
+		}
 		return true;
+	}
 
-	_texture_pool.emplace(key, std::move(texture));
+	_texture_pool.emplace(key, texture);
 	return true;
 }
 
@@ -48,5 +63,16 @@ SDL_Texture* TextureManager::find_texture(const std::string_view& key)
 		return nullptr;
 
 	return iterator->second;
+}
+
+void TextureManager::clear() noexcept
+{
+	for (const auto& [key, texture] : _texture_pool)
+	{
+		(void)key;
+		if (texture)
+			SDL_DestroyTexture(texture);
+	}
+	_texture_pool.clear();
 }
 }

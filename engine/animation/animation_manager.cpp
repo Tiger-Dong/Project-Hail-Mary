@@ -90,4 +90,9 @@ std::unique_ptr<Animation> AnimationManager::create_animation(const std::string_
 	animation->set_interval_seconds(1.0 / definition->fps);
 	return animation;
 }
+
+void AnimationManager::clear_content() noexcept
+{
+	_definitions.clear();
+}
 }

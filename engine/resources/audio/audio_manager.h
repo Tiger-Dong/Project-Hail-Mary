@@ -16,6 +16,9 @@ using MusicPool = std::unordered_map<std::string, Mix_Music*>;
 class AudioManager
 {
 public:
+	AudioManager() = default;
+	~AudioManager();
+
 	bool load_sound(const std::string& key, const std::filesystem::path& file_path);
 	bool load_music(const std::string& key, const std::filesystem::path& file_path);
 
@@ -24,6 +27,7 @@ public:
 
 	Mix_Chunk* find_sound(const std::string_view& key) const;
 	Mix_Music* find_music(const std::string_view& key) const;
+	void clear() noexcept;
 
 private:
 	SoundPool _sound_pool;

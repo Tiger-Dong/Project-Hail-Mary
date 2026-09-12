@@ -153,12 +153,8 @@ void MenuScene::on_exit()
 	// Destroy button when leaving the menu.
 	_start_button.reset();
 
-	// Related to menu text
-	if (_menu_font)
-	{
-		TTF_CloseFont(_menu_font);
-		_menu_font = nullptr;
-	}
+	// The resource manager owns the borrowed font.
+	_menu_font = nullptr;
 
 	_paused = false;
 }

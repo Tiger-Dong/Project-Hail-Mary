@@ -118,7 +118,7 @@ void Bullet::on_entity_collision(GameObject *entity) noexcept
     }
 }
 
-void Bullet::on_destroy() noexcept
+void Bullet::on_destroyed() noexcept
 {
     // Call on destroy behaviors
     BulletBehaviorContext context{.bullet = *this};
@@ -144,16 +144,17 @@ void Bullet::on_destroy() noexcept
 void Bullet::update(double delta)
 {
     // Update age
-    double age = Projectile::age_seconds();
-    Projectile::set_age(age + delta);
+    const double age = Projectile::age_seconds() + delta;
+    Projectile::set_age(age);
 
     // Update hit cooldowns
     update_hit_cooldowns(delta);
 
     // Enforce max age
-    if (age > _bullet_attributes.max_age)
+    if (age >= _bullet_attributes.max_age)
     {
         Projectile::destroy();
+        return;
     }
 
     // call on update behaviors

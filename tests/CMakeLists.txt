@@ -15,3 +15,10 @@ target_link_libraries(ui_widget_tests PRIVATE engine_lib ${SDL2_LIBRARIES})
 
 add_test(NAME ui_widget_tests COMMAND ui_widget_tests)
 set_tests_properties(ui_widget_tests PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+add_executable(lifecycle_tests lifecycle_tests.cpp)
+target_include_directories(lifecycle_tests PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(lifecycle_tests PRIVATE gameplay_lib engine_lib imgui_lib ${SDL2_LIBRARIES})
+
+add_test(NAME lifecycle_tests COMMAND lifecycle_tests)
+set_tests_properties(lifecycle_tests PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

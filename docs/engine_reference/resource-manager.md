@@ -58,10 +58,17 @@ pointer, and stores it only for as long as the resource manager remains alive.
 managers own the SDL resource objects in their stores. Every pointer returned
 by `find_*` is borrowed; callers do not free it.
 
-The manager lives for the process lifetime through `Singleton<T>`. The normal
-flow loads each key once during startup, so gameplay can keep a successful
-lookup for the runtime. Reloading an existing font, sound, or music key replaces
-its native resource and invalidates pointers returned for the old value.
+The manager lives for the process lifetime through `Singleton<T>`, but
+`Application::shutdown` explicitly releases its content before SDL audio,
+font, and renderer shutdown. The normal flow loads each key once during
+startup, so gameplay can keep a successful lookup until that shutdown begins.
+Reloading an existing texture, font, sound, or music key replaces its native
+resource and invalidates pointers returned for the old value.
+
+`shutdown()` is idempotent. It clears effect and animation definitions before
+atlases and native SDL resources, so no definition remains linked to a released
+atlas. Calling `init()` again with the same renderer is also an idempotent
+success; using another renderer requires an explicit shutdown first.
 
 ## Failure and Empty Results
 

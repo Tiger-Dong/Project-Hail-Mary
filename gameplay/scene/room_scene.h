@@ -2,6 +2,7 @@
 
 #include "../../engine/scene/scene.h"
 #include "../../engine/core/geometry/vector2.h"
+#include "../../engine/core/scene_object_observer.h"
 #include "../characters/enemy.h"
 #include "../characters/player_character.h"
 #include "../generator/enemy_generator.h"
@@ -24,8 +25,6 @@ public:
     void on_render(SDL_Renderer *renderer) override;
     void on_input(const engine::input::InputSnapshot &input, const std::vector<engine::input::InputEvent> &events) override;
 
-    engine::core::Vector2 closest_enemy_to_point(engine::core::Vector2 &point);
-
     // imgui debug
     void on_imgui() override;
 
@@ -36,11 +35,9 @@ private:
     void spawn_player();
     void generate_enemies(EnemyType type, std::size_t count);
 
-    PlayerCharacter *_player = nullptr;
-    vector<ShotDescriptor> _scheduled_projectiles;
-    DungeonRoom *_room = nullptr;
+    engine::core::SceneObjectObserver<PlayerCharacter> _player;
+    engine::core::SceneObjectObserver<DungeonRoom> _room;
     RoomTileCollisionWorld _collision_world;
 
     EnemyGenerator _enemy_generator;
-    vector<Enemy *> _enemies;
 };

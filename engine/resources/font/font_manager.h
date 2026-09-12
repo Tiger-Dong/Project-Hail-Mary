@@ -15,9 +15,13 @@ using FontPool = std::unordered_map<std::string, TTF_Font*>;
 class FontManager
 {
 public:
-	bool load_font(const std::string& key,const std::filesystem::path& file_path,int point_size);
+	FontManager() = default;
+	~FontManager();
+
+	bool load_font(const std::string& key, const std::filesystem::path& file_path, int point_size);
 	bool store_font(const std::string& key, TTF_Font* font);
 	TTF_Font* find_font(const std::string_view& key) const;
+	void clear() noexcept;
 
 private:
 	FontPool _font_pool;

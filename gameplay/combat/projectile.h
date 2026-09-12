@@ -52,14 +52,6 @@ public:
         destroy();
     }
 
-    virtual void on_destroy() noexcept {}
-
-    void destroy() noexcept
-    {
-        on_destroy();
-        SceneObject::destroy();
-    }
-
     virtual void on_entity_collision(GameObject *entity) noexcept
     {
         destroy();
@@ -130,6 +122,8 @@ public:
     }
 
 protected:
+    void on_destroyed() noexcept override {}
+
     void reset() noexcept override
     {
         engine::core::GameObject::reset();
