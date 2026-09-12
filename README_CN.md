@@ -94,3 +94,10 @@ thirdparty/    第三方依赖
 - [English README](README.md)
 - [玩法与叙事提案](introduction/Gameplay%20Narrative%20Pitch.pdf)
 - [代码规范](docs/coding_standard.md)
+
+## 许可证
+
+本项目自有的源代码、构建文件、测试、文档及可编辑的资源配置文件采用
+[GPL-3.0-only](LICENSE)。美术、音频、字体等受保护的游戏素材不在此授权
+范围内，详见[素材许可证](assets/LICENSE.md)。第三方依赖维持各自的许可证，
+详见[第三方声明](THIRD_PARTY_NOTICES.md)。
